@@ -2,10 +2,14 @@ Package: lme4permuco
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Authors@R: c(
+  person("Jaromil","Frossard", email = "jaromil.frossard@unige.ch",role = c("aut", "cre")),
+  person("Olivier","Renaud",email="olivier.renaud@unige.ch",role=c("aut")))
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
-Encoding: UTF-8
-LazyData: true
+License: GPL (>= 2)
+Imports: gANOVA,Matrix,lme4
+LazyData: TRUE
+RoxygenNote: 6.0.1
+Suggests: R.rsp
+VignetteBuilder: R.rsp

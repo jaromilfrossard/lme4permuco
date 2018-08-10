@@ -1,2 +1,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^function_data$
+^test\.R$
+^data_uni_lmm\.R$
