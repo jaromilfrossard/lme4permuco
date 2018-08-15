@@ -16,9 +16,9 @@ PBS_perm.numeric <- function(x, PBSmat){
   }else {sign<- 1L}
   PBSmat <- abs(PBSmat)
   PBSmat <- apply(PBSmat,2,function(pi){
-    x[pi]
+    as.numeric(x[pi])
   })*sign
-  PBSmat
+  unclass(PBSmat)
 }
 
 #' @export
@@ -28,7 +28,7 @@ PBS_perm.matrix <- function(x, PBSmat){
   if(grepl("S",type)){
     PBSmat <- lapply(1:ncol(PBSmat),function(coli){x[abs(PBSmat[,coli]),]*sign(PBSmat[,coli]) })
   }else {
-    PBSmat <- lapply(1:ncol(PBSmat),function(coli){ x[PBSmat[,coli],] })
+    PBSmat <- lapply(1:ncol(PBSmat),function(coli){x[PBSmat[,coli],] })
 
   }
 

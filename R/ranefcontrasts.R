@@ -26,7 +26,7 @@ ranefcontrasts.lmerModgANOVA <- function(model){
   names(ranefcontr) <- names(contrlist)
 
   out = list()
-  out$ranef = ranef
+  out$ranef = ranefcontr
   out$contr = lapply(contrlist,function(x)x$contr)
   out$Zmat = lapply(contrlist,function(x)x$sm)
   out

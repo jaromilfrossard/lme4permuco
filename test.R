@@ -84,98 +84,129 @@ ffull = y~fS*fC*fI + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
 
 fsmall = y~fS*fC*fI + (1|subject)+ (1|subject:fC)+ (1|item)
 fmedium= y~fS*fC*fI  + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
-  (1|subject:fC:fI)
+  (1|subject:fC:fI)+ (1|item)+ (1|item:fC)
+flarge= y~fS*fC*fI  + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
+  (1|subject:fC:fI)+ (1|item)+ (1|item:fC)+ (1|item:fS)+ (1|item:fC:fS)
 fmlmer= y~fS*fC*fI  + ((fS.L+ fS.Q)||subject)
 
-modelg = gANOVA(fmedium,df,REML =T)
-modelmg = lmer(fmlmer,df,REML =T)
+
+library(lme4permuco)
+model = gANOVA(fmedium,df,REML =T)
+#modelg = gANOVA(flarge,df,REML =T)
+
+f = lme4formula2aov(modelg)
+
+
+bllm=blup_lm(modelg)
+
+lme4:::getFixedFormula()
+
+library(lme4permuco)
+
+permucoQuasiF:::clusterlm_quasif
+
+
+lf= list.files(paste(dir,"R",sep=""))
+
+for(lfi in lf){
+  print(lfi)
+  source(paste(dir,"R/",lfi,sep=""))
+}
+
+
+lf= list.files(paste(dir,"../gANOVA/R",sep=""))
+
+for(lfi in lf){
+  print(lfi)
+  source(paste(dir,"../gANOVA/R/",lfi,sep=""))
+}
+
 
 
 
 model = modelg
-frfull=ranefcontrasts(model)
 
 
 
-formula <- formula(model)
-bars <- findbars(lme4:::RHSForm(formula))
-names(bars) <- lme4:::barnames(bars)
-fr <-  model@frame
-rf <- ranef(model)
-
-bars <- bars[match(names(bars),names(rf))]
-
-contrlist <- lapply(bars, mkcontrastslist, fr)
-
-
-lapply(contrlist,function(x)dim(x$sm))
-
-i=1
-as.numeric(contrlist[[i]]$contr%*%matrix(as.numeric(as.matrix(rf[[i]])),ncol=blist[[i]]$n))
-dim(contrlist[[1]]$sm)
+blup = lmerModperm(modelg,np=200,blup_FUN = blup_blup,statistic = "Satterthwaite")
+cgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr,statistic = "Satterthwaite")
 
 
 
-sapply(contrlist[[1]]$sm,dim)
+mean(blup$statp>=(blup$statp[1]))
+mean(cgr$statp>=(cgr$statp[1]))
 
-rf$`subject:fC:fI`[1:4,]
-lapply(blist,function(x)x$n)
+cgr$statp[1]
+blup$statp[1]
+cgr
+blupp$statp
+bluplp$statp
 
-a$contr
-str(sm)
-rf$`subject:fC:fI`
+getME(blup$model0[[2]])
+lapply(blup$model0, function(mod)lmerTest:::anova.lmerModLmerTest(mod,ddf = "Satterthwaite",type=3))
 
-do.call("%x%",a$contr)
+a = lmerTest:::anova.lmerModLmerTest(blup$model0[[2]])
+lmerTest:::contestMD.lmerModLmerTest
 
-a$contr
-class(a$sm)
+FUN_stat(blup$model0[[2]],2)
 
 
-names(a$sm)
+getME(blup$model0[[2]],"L")
+getME(blup$model0[[2]],"beta")
 
-image(a$sm[[1]])
+lmerTest:::as_lmerModLmerTest(blup$model0[[2]])
+refit(modelg,newresp = rev(df$y))
 
-lme4:::RHSForm(formula)
+getME(model,"theta")
+anova(model,type = "III",method = "satterthwaite")
+
+lmerTest:::anova.lmerModLmerTest
+
+blup = lmerModperm(modelg,np=3,blup_FUN = blup_blup)
+blup$statp
+
+cgr = lmerModperm(model,np=200)
+
+
+
+thetas_cgr = t(sapply(cgr$model0,function(mod){getME(mod,"theta")}))
+thetas_blup = t(sapply(blup$model0,function(mod){getME(mod,"theta")}))
+
+
+model.ranef <- ranef(model)
+model.resid <- resid(model)
+
+par(mfrow=c(1,2))
+i = 5
+plot(density(thetas_cgr[,i]))
+abline(v= thetas_cgr[1,i])
+plot(density(thetas_blup[,i]))
+abline(v= thetas_blup[1,i])
+
+sapply(a$statp,function(mod){getME(mod,"theta")})
+
+
+
+a$
+
+ystar=a$estar+a$fitted
+
+
+a$model
+
 i=2
-sumrf=t(ztlistl[[1]])%*%(as.matrix(rfl[[1]]))+
-t(ztlistl[[2]])%*%(as.matrix(rfl[[2]]))+
-t(ztlistl[[3]])%*%(as.matrix(rfl[[3]]))
-sumrf-getME(modell,"Z")%*%getME(modell,"b")
-cbind(getME(modell,"u"),getME(modell,"b"))
-cbind(getME(modelg,"u"),getME(modelg,"b"))
+theta = getME(a$model,"theta")
+cl = a$model@call
+cl[[1]]=gANOVA::gANOVA
+cl$start = eval(theta)
+cl$formula = eval(cl$formula)
+f = eval(cl$formula)
+f = formula(paste("ystar[,",eval(i),"]",as.character(f)[1],as.character(f)[3]))
+cl$formula = f
+model0 = eval(cl)
+gANOVA:::anova.lmerModgANOVA(model0,"satterwhaite")
 
-ranef(model)
+lmerModperm_terBraak(args)
 
-formula(model)
-
-
-library(lme4permuco)
-
-x = abs(matrix(rnorm(10*5),nrow=10))
-PBSmat = PBSmat(10,12,"PS")
-PBS_perm(x = x, PBSmat)
-
-lf= list.files("R")
-for(lfi in lf){
-  print(lfi)
-  source(paste("R/",lfi,sep=""))
-}
-
-lmerp = lmerModperm(model)
-
-
-str(lmerp$blup)
-
-lme4::VarCorr(model)
-
-lme4:::VarCorr.merMod
-
-np = 500
-method = "dekker"
-blup_FUN =blup_cgr
-statistic ="quasif"
-assigni = 1
-t0 = proc.time()
-qf_cgr_d_reml = randomize(model=model,np= np,method = "dekker",blup_FUN =blup_cgr,statistic ="quasif")
 
 
