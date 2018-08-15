@@ -91,13 +91,21 @@ fmlmer= y~fS*fC*fI  + ((fS.L+ fS.Q)||subject)
 
 
 library(lme4permuco)
-model = gANOVA(fmedium,df,REML =T)
+modelg = gANOVA(fmedium,df,REML =T)
 #modelg = gANOVA(flarge,df,REML =T)
 
-f = lme4formula2aov(modelg)
 
+permlm = lmerModperm(modelg,np=200,blup_FUN = blup_lm)
+permblup = lmerModperm(modelg,np=200,blup_FUN = blup_blup)
+permcgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr)
 
-bllm=blup_lm(modelg)
+lmc= as.list(mc[-1])
+
+bllm=blup_lm(model)
+
+bllm$ehat
+
+lapply(bllm$Uhat_list,dim)
 
 lme4:::getFixedFormula()
 

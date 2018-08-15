@@ -119,7 +119,13 @@ blup_lm = function(model){
   gamma = lapply(1:length(Ztlist), function(i)matrix(gamma[assign==i],ncol=1))
   names(gamma) = names(Ztlist)
 
-  out = list(Uhat_list = gamma, ehat = NULL)
+  gamma = mapply(function(gi,ci){ci%*%gi},
+         gi = gamma, ci = contrlist,
+         SIMPLIFY = F
+         )
+  ehat = qr.resid(qr_xz,getME(model,"y"))
+
+  out = list(Uhat_list = gamma, ehat = matrix(ehat,ncol=1))
   return(out)
 
 

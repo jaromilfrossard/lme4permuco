@@ -15,6 +15,10 @@ lmerModperm <- function(model, blup_FUN, np, method, assigni, statistic, ...){Us
 
 #' @export
 lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, method = "terBraak", assigni = 1, statistic = "Satterthwaite",...){
+  argslist <- formals()
+  mc <- match.call()
+  argslist[names(as.list(mc[-1]))] = as.list(mc[-1])
+  argslist  <- argslist
 
 
 
@@ -37,22 +41,36 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
 
 
   ### create new error
-  Ztlist <- getME(model,"Ztlist")
 
   reff <- blup$Uhat_list
   reff$error <- matrix(blup$ehat,ncol=1)
-  Ztlist <- c(Ztlist,error=Diagonal(length(blup$ehat)))
+
+
 
   PBSlist <- lapply(lapply(reff,length),function(n){
     PBSmat(n=n,np =np,type = "PS")
   })
 
+  if(deparse(argslist$blup_FUN)=="blup_lm"){
+    Ztlist <- getZtlm(model,"reduced")
+    X <- getME(model,"X")
+    beta <- qr.coef(qr(cbind(X,t(do.call("rbind",Ztlist)))),getME(model,"y"))[1:ncol(X)]
+    Ztlist <- getZtlm(model,"full")
+
+  }else if( (deparse(argslist$blup_FUN)=="blup_blup")|
+      (deparse(argslist$blup_FUN)=="blup_cgr")){
+    Ztlist <- getME(model,"Ztlist")
+    X <- getME(model,"X")
+    beta <- getME(model,"beta")
+
+  }
+
+  Ztlist <- c(Ztlist,error=Diagonal(length(blup$ehat)))
 
 
   estar <- mapply(function(pbs,rfi,zti)as.matrix(t(zti)%*%PBS_perm(as.numeric(rfi),pbs)),pbs=PBSlist,rfi=reff,z = Ztlist,SIMPLIFY = F)
   estar <- Reduce("+",estar)
-  fitted <- fitted (model)
-  args <- list(estar = estar, fitted = fitted, assigni = assigni, model = model)
+  args <- list(estar = estar, assigni = assigni, model = model, X = X, beta = beta)
 
 
 #return(args)
@@ -66,9 +84,9 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
 
   out <- list()
   out$model <- model
-  out$model0 = model0
+  out$model0 <- model0
   out$blup <- blup
-  out$statp = statp
+  out$statp <- statp
   out
 
 }

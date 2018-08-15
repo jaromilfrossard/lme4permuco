@@ -1,8 +1,8 @@
 #' @importFrom gANOVA refit.lmerModgANOVA
 #'
 lmerModperm_terBraak = function(args){
-  X = getME(args$model,"X")
-  beta = getME(args$model,"beta")
+  X = args$X
+  beta = args$beta
 
   fitted_star = as.numeric(X[,attr(X,"assign")!=args$assigni,drop=F]%*%beta[attr(X,"assign")!=args$assigni])
 

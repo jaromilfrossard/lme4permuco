@@ -4,12 +4,20 @@
 \alias{lmerModperm}
 \title{Permutation test on lmerMod object}
 \usage{
-lmerModperm(model, blup_FUN, ...)
+lmerModperm(model, blup_FUN, np, method, assigni, statistic, ...)
 }
 \arguments{
 \item{model}{a lmerMod object}
 
 \item{blup_FUN}{the type of BLUP to permute. Default is CGR.}
+
+\item{np}{an integer indicating the number of permutation/bootstrap/suffle.}
+
+\item{method}{a character string indicating the permutation/bootstrap/suffle method, default is "terBraak".}
+
+\item{assigni}{a integer indicating the effect to test. Default is 1.}
+
+\item{statistic}{a character string indicating the test statistic. default is "satterwhaite".}
 
 \item{...}{other arguments}
 }
