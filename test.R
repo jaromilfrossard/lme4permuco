@@ -89,115 +89,53 @@ flarge= y~fS*fC*fI  + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
   (1|subject:fC:fI)+ (1|item)+ (1|item:fC)+ (1|item:fS)+ (1|item:fC:fS)
 fmlmer= y~fS*fC*fI  + ((fS.L+ fS.Q)||subject)
 
-
+#devtools::install_github("jaromilfrossard/lme4permuco")
 library(lme4permuco)
 modelg = gANOVA(fmedium,df,REML =T)
 #modelg = gANOVA(flarge,df,REML =T)
+
+
+gANOVA_lFormula(fmedium,df,REML =T)
+
+permlm = lmerModperm(modelg,np=20)
 
 
 permlm = lmerModperm(modelg,np=200,blup_FUN = blup_lm)
 permblup = lmerModperm(modelg,np=200,blup_FUN = blup_blup)
 permcgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr)
 
-lmc= as.list(mc[-1])
-
-bllm=blup_lm(model)
-
-bllm$ehat
-
-lapply(bllm$Uhat_list,dim)
-
-lme4:::getFixedFormula()
-
-library(lme4permuco)
-
-permucoQuasiF:::clusterlm_quasif
 
 
-lf= list.files(paste(dir,"R",sep=""))
-
-for(lfi in lf){
-  print(lfi)
-  source(paste(dir,"R/",lfi,sep=""))
+getSD = function(model){
+  vc = VarCorr(model)
+  sapply(vc, function(vci){
+    attr(vci, "stddev")
+  })
 }
 
-
-lf= list.files(paste(dir,"../gANOVA/R",sep=""))
-
-for(lfi in lf){
-  print(lfi)
-  source(paste(dir,"../gANOVA/R/",lfi,sep=""))
-}
+##### plot thetas
+thetas_lm = t(sapply(permlm$model0,function(mod){getSD(mod)}))
+thetas_cgr = t(sapply(permcgr$model0,function(mod){getSD(mod)}))
+thetas_blup = t(sapply(permblup$model0,function(mod){getSD(mod)}))
 
 
+sapply(permlm$model0,function(mod)mod@optinfo$conv$opt==0)
+sapply(permcgr$model0,function(mod)mod@optinfo$conv$opt==0)
+sapply(permblup$model0,function(mod)mod@optinfo$conv$opt==0)
 
 
-model = modelg
+ntheta = ncol(thetas_lm)
+par(mfcol=c(3,ntheta),oma=c(0,0,0,0),mar=c(2,2,1,.5))
 
-
-
-blup = lmerModperm(modelg,np=200,blup_FUN = blup_blup,statistic = "Satterthwaite")
-cgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr,statistic = "Satterthwaite")
-
-
-
-mean(blup$statp>=(blup$statp[1]))
-mean(cgr$statp>=(cgr$statp[1]))
-
-cgr$statp[1]
-blup$statp[1]
-cgr
-blupp$statp
-bluplp$statp
-
-getME(blup$model0[[2]])
-lapply(blup$model0, function(mod)lmerTest:::anova.lmerModLmerTest(mod,ddf = "Satterthwaite",type=3))
-
-a = lmerTest:::anova.lmerModLmerTest(blup$model0[[2]])
-lmerTest:::contestMD.lmerModLmerTest
-
-FUN_stat(blup$model0[[2]],2)
-
-
-getME(blup$model0[[2]],"L")
-getME(blup$model0[[2]],"beta")
-
-lmerTest:::as_lmerModLmerTest(blup$model0[[2]])
-refit(modelg,newresp = rev(df$y))
-
-getME(model,"theta")
-anova(model,type = "III",method = "satterthwaite")
-
-lmerTest:::anova.lmerModLmerTest
-
-blup = lmerModperm(modelg,np=3,blup_FUN = blup_blup)
-blup$statp
-
-cgr = lmerModperm(model,np=200)
-
-
-
-thetas_cgr = t(sapply(cgr$model0,function(mod){getME(mod,"theta")}))
-thetas_blup = t(sapply(blup$model0,function(mod){getME(mod,"theta")}))
-
-
-model.ranef <- ranef(model)
-model.resid <- resid(model)
-
-par(mfrow=c(1,2))
-i = 5
-plot(density(thetas_cgr[,i]))
+for(i in 1:ntheta){
+  xlim= range(c(thetas_lm[,i],thetas_cgr[,i],thetas_blup[,i]))
+plot(density(thetas_lm[,i]),main="",xlab = "",ylab="",xlim=xlim)
+abline(v= thetas_lm[1,i])
+plot(density(thetas_cgr[,i]),main="",xlab = "",ylab="",xlim=xlim)
 abline(v= thetas_cgr[1,i])
-plot(density(thetas_blup[,i]))
-abline(v= thetas_blup[1,i])
+plot(density(thetas_blup[,i]),main="",xlab = "",ylab="",xlim=xlim)
+abline(v= thetas_blup[1,i])}
 
-sapply(a$statp,function(mod){getME(mod,"theta")})
-
-
-
-a$
-
-ystar=a$estar+a$fitted
 
 
 a$model

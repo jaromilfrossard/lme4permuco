@@ -18,7 +18,6 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
   argslist <- formals()
   mc <- match.call()
   argslist[names(as.list(mc[-1]))] = as.list(mc[-1])
-  argslist  <- argslist
 
 
 
@@ -87,6 +86,13 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
   out$model0 <- model0
   out$blup <- blup
   out$statp <- statp
+  out$mc <- mc
+  out$argslist  <- argslist
   out
 
 }
+
+lmerModperm.gANOVA_lFormula <- function(model, blup_FUN = blup_cgr, np = 4000, method = "terBraak", assigni = 1, statistic = "Satterthwaite",...){
+
+}
+
