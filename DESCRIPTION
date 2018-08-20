@@ -8,7 +8,7 @@ Authors@R: c(
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL (>= 2)
-Imports: gANOVA,Matrix,lme4
+Imports: gANOVA,Matrix,lme4,methods
 LazyData: TRUE
 RoxygenNote: 6.0.1
 Suggests: R.rsp

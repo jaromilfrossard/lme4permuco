@@ -93,17 +93,36 @@ fmlmer= y~fS*fC*fI  + ((fS.L+ fS.Q)||subject)
 library(lme4permuco)
 modelg = gANOVA(fmedium,df,REML =T)
 #modelg = gANOVA(flarge,df,REML =T)
+# object = modelg
+# newresp= rev(getME(modelg,"y"))
+# newx = getME(modelg,"X")[sample(length(newresp)),]
 
 
-gANOVA_lFormula(fmedium,df,REML =T)
+lf= list.files(paste(dir,"R",sep=""))
 
-permlm = lmerModperm(modelg,np=20)
+for(lfi in lf){
+  print(lfi)
+  source(paste(dir,"R/",lfi,sep=""))
+}
 
 
-permlm = lmerModperm(modelg,np=200,blup_FUN = blup_lm)
-permblup = lmerModperm(modelg,np=200,blup_FUN = blup_blup)
-permcgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr)
+params = expand.grid(method = c("dekker","terBraak"),
+blup = c("blup_lm","blup_blup","blup_cgr"),stringsAsFactors = F)
 
+i= 1
+bfun<- switch(params$blup[i],
+       "blup_lm" = {blup_lm},"blup_blup" = {blup_blup},"blup_cgr" = {blup_cgr})
+modi = lmerModperm(modelg,np=10,blup_FUN = bfun,method = params$method[i])
+
+
+
+perm_tb_lm = lmerModperm(modelg,np=10,blup_FUN = blup_lm)
+perm_tb_blup = lmerModperm(modelg,np=200,blup_FUN = blup_blup)
+perm_tb_cgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr)
+
+perm_tb_lm = lmerModperm(modelg,np=200,blup_FUN = blup_lm)
+perm_tb_blup = lmerModperm(modelg,np=200,blup_FUN = blup_blup)
+perm_tb_cgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr)
 
 
 getSD = function(model){

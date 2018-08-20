@@ -1,10 +1,10 @@
 #' @importFrom gANOVA refit.lmerModgANOVA
 #'
 lmerModperm_terBraak = function(args){
-  X = args$X
+  XD = args$X
   beta = args$beta
 
-  fitted_star = as.numeric(X[,attr(X,"assign")!=args$assigni,drop=F]%*%beta[attr(X,"assign")!=args$assigni])
+  fitted_star = as.numeric(XD[,attr(XD,"assign")!=args$assigni,drop=F]%*%beta[attr(XD,"assign")!=args$assigni])
 
 
   ## fitted value
@@ -29,12 +29,7 @@ lmerModperm_terBraak = function(args){
       prog = as.integer(round(i/ncol(ystar)*100))
       cat( paste (prog, "%\n"))
     }
-
-  # f = paste("ystar[,",eval(i),"]",as.character(f)[1],as.character(f)[3])
-  # cl$formula = update.formula(old= formula(cl$formula),new = eval(parse(text=f)))
-  # print(cl)
   model0[[i]] = refit.lmerModgANOVA(args$model,newresp = ystar[,i])
-  #model0[[i]] = eval(cl)
   }
   model0[[1]] = args$model
 

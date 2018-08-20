@@ -26,7 +26,7 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
 
   switch(method,
          "terBraak" = {FUN_p = function(x)lmerModperm_terBraak(x)},
-         "dekker" = {FUN_p = function(x)lmerModperm_terBraak(x)})
+         "dekker" = {FUN_p = function(x)lmerModperm_dekker(x)})
 
   switch(statistic,
          "Satterthwaite" = {FUN_stat = function(model,assigni){anova(model,type=3,ddf="Satterthwaite")[assigni,5]}},
@@ -46,9 +46,11 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
 
 
 
-  PBSlist <- lapply(lapply(reff,length),function(n){
+  PBSlist <- list(
+    fixeff = PBSmat(n = length(getME(model,"y")), np = np, type = "P"),
+    ranef = lapply(lapply(reff,length),function(n){
     PBSmat(n=n,np =np,type = "PS")
-  })
+  }))
 
   if(deparse(argslist$blup_FUN)=="blup_lm"){
     Ztlist <- getZtlm(model,"reduced")
@@ -67,9 +69,9 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
   Ztlist <- c(Ztlist,error=Diagonal(length(blup$ehat)))
 
 
-  estar <- mapply(function(pbs,rfi,zti)as.matrix(t(zti)%*%PBS_perm(as.numeric(rfi),pbs)),pbs=PBSlist,rfi=reff,z = Ztlist,SIMPLIFY = F)
+  estar <- mapply(function(pbs,rfi,zti)as.matrix(t(zti)%*%PBS_perm(as.numeric(rfi),pbs)),pbs=PBSlist$ranef,rfi=reff,z = Ztlist,SIMPLIFY = F)
   estar <- Reduce("+",estar)
-  args <- list(estar = estar, assigni = assigni, model = model, X = X, beta = beta)
+  args <- list(estar = estar, assigni = assigni, model = model, X = X, beta = beta, PBSmat = PBSlist$fixeff)
 
 
 #return(args)
