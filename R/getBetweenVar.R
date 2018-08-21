@@ -4,7 +4,7 @@
 #'
 #' @param formula a formula of a fixed design
 #' @param data a dataframe
-#' @SU a sampling unit
+#' @param SU a sampling unit
 #' @export
 getBetweenVar <- function(formula,data,SU){
   data = droplevels(data)

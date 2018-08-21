@@ -10,6 +10,8 @@ getBetweenVar(formula, data, SU)
 \item{formula}{a formula of a fixed design}
 
 \item{data}{a dataframe}
+
+\item{SU}{a sampling unit}
 }
 \description{
 get the type of variable of a fixed design given a sampling unit

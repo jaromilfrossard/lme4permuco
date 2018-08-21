@@ -126,8 +126,31 @@ formula_full = paste("~",paste(colnames(btable),collapse="+"),sep="")
 formula_full = paste(c(formula_full ,paste("Error(",sapply(1:nrow(btable),function(i){
   paste(rownames(btable)[i],"/(",paste(colnames(btable)[!btable[i,]],collapse="+"),")")
 }),")")),collapse=" + ")
-formula = formula(paste(deparse(formula[[2]]),formula_full))
-Ztlist = getZtlm(formula,"reduced",data=data)
+formula_full = formula(paste(deparse(formula[[2]]),formula_full))
+
+
+
+terms <- terms(formula_full, special = "Error", data = data)
+terms <- delete.response(terms)
+ind_error <- attr(terms, "specials")$Error
+
+error_term <- lapply(ind_error,function(ie)attr(terms, "variables")[[1 + ie]])
+error_names <- sapply(error_term,function(et){
+  len_et <- length(et[[2]])
+  if(len_et == 3){deparse(et[[2]][[2]])}
+  else if(len_et == 3){deparse(et[[2]])}
+})
+names(error_term) <- error_names
+# extract within part
+formula_within <- lapply(error_term, function(et){
+  len_et <- length(et[[2]])
+  if(len_et==3){formula(paste("~", deparse(et[[2]][[3]]), collapse = ""),env=NULL,showEnv=F)}
+  else if(len_et==1){
+    formula(~ 1,env=NULL,showEnv=F) }})
+
+link = permucoQuasiF:::link(fformula,formula_within[[1]],formula_within[[2]])
+
+
 
 names(Ztlist)
 sum(sapply(Ztlist,dim)[1,])
