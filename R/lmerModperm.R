@@ -29,9 +29,6 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   blup <- blup_FUN(model)
 
 
-  switch(method,
-         "terBraak" = {FUN_p = function(x)lmerModperm_terBraak(x)},
-         "dekker" = {FUN_p = function(x)lmerModperm_dekker(x)})
 
   switch(statistic,
          "Satterthwaite" = {FUN_stat = function(model,assigni){anova(model,type=3,ddf="Satterthwaite")[assigni,5]}},
@@ -40,6 +37,17 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
            ano = anova(model,type=3,ddf="Satterthwaite")
            abs(pf(q=ano[assigni,5], df1 = ano[assigni,3], df2 = ano[assigni,4], lower.tail = F, log.p = T))
          }})
+
+
+  if(statistic%in% c("quasiF","quasiF_logp") ){
+    switch(method,
+           "terBraak" = {FUN_p = function(x)quasiF_terBraak(x)},
+           "dekker" = {FUN_p = function(x)quasiF_dekker(x)})
+  }else{
+    switch(method,
+           "terBraak" = {FUN_p = function(x)lmerModperm_terBraak(x)},
+           "dekker" = {FUN_p = function(x)lmerModperm_dekker(x)})
+  }
 
 
 
@@ -86,7 +94,13 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
 
 
 #return(args)
+  fp <<-FUN_p
+  ag <<-args
+  stop()
   model0 = FUN_p(args)
+
+
+
   statp = NULL
   statp = sapply(model0,function(mod){
     FUN_stat(mod, assigni)
@@ -105,7 +119,13 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
 
 }
 
+#'@export
 lmerModperm.gANOVA_lFormula <- function(model, blup_FUN = blup_cgr, np = 4000, method = "terBraak", assigni = 1, statistic = "Satterthwaite",...){
+
+
+  if(statistic%in%c("Satterthwaite","Satterthwaite_logp","Satterthwaite","Satterthwaite_p")){
+
+  }
 
 }
 

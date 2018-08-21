@@ -3,20 +3,47 @@
 #'@description Extract / create the Z matrix of type LM from a model
 #'@param model a lmerModgANOVA model
 #'@param type integer indicating the type of matrix "full" for Z0, "reduced" for Z = Z0C' or "contrasts" for C
+#'@param ... othder argument
 #'@export
 #'@importFrom stats delete.response model.frame contrasts 'contrasts<-'
-getZtlm <- function(model, type = "full"){UseMethod("getZtlm")}
+getZtlm <- function(model, type = "full",...){UseMethod("getZtlm")}
+
 
 #'@export
-getZtlm <- function(model, type){
-  # Z = t(getME(model,"Zt"))
-  # X = getME(model,"X")
-  faov = lme4formula2aov(model)
-  fformula = lme4:::getFixedFormula(eval(model@call$formula))
+getZtlm.lmerModgANOVA = function(model, type,...){
+  formula = lme4formula2aov(model)
+  data = model@frame
+  getZtlm.formula(formula, type = type, data = data)
+}
+
+
+
+getZtlm.formula <- function(model, type,...){
+  dotargs = list(...)
+  if(is.null(dotargs$data)){
+    stop("specify data object")
+  }
+
+  formula = model
+
+
+
+  terms <- terms(formula, special = "Error", data = data)
+  ind_error <- attr(terms, "specials")$Error
+
+  fformula = lme4:::getFixedFormula(formula)
+
+  ## delete error terms
+  if(length(ind_error)==2){
+    fformula = formula(paste(deparse(formula[[2]]),"~",deparse(formula[[3]][[2]][[2]]),sep=""))
+
+  }else if(length(ind_error)==1){
+  fformula = formula(paste(deparse(formula[[2]]),"~",deparse(formula[[3]][[2]]),sep=""))}
+
+
   fformula_design = delete.response(terms(update.formula(fformula, ~.)))
 
-  terms <- terms(faov, special = "Error", data = model@frame)
-  ind_error <- attr(terms, "specials")$Error
+
   error_term <- lapply(ind_error,function(ie)attr(terms, "variables")[[1 + ie]])
   error_names <- sapply(error_term,function(et){
     len_et <- length(et[[2]])
@@ -40,7 +67,7 @@ getZtlm <- function(model, type){
                      sapply(error_term,function(et)deparse(et[[2]])),collapse="+",sep="+")
 
   # create model frame with contrasts
-  mf_design <- permuco:::changeContrast(model@frame, contr = "contr.sum")
+  mf_design <- permuco:::changeContrast(data, contr = "contr.sum")
 
   mf_id <- lapply(formula_id,function(fid){
     model.frame(formula = fid, data = as.data.frame(lapply(mf_design,
@@ -150,3 +177,6 @@ getZtlm <- function(model, type){
            Ztlist = unlist(Ztlist,recursive = F)})
   return(Ztlist)
 }
+
+
+

@@ -98,13 +98,58 @@ modelg = gANOVA(fmedium,df,REML =T)
 # newx = getME(modelg,"X")[sample(length(newresp)),]
 
 
-# lf= list.files(paste(dir,"R",sep=""))
-#
-# for(lfi in lf){
-#   print(lfi)
-#   source(paste(dir,"R/",lfi,sep=""))
-# }
+lf= list.files(paste(dir,"R",sep=""))
 
+for(lfi in lf){
+  print(lfi)
+  source(paste(dir,"R/",lfi,sep=""))
+}
+
+lmerModperm(modelg,np=5,blupstar = "lm",method = "terBraak",statistic = "quasiF")
+
+data = ag$model@frame
+formula <- formula(ag$model)
+bars <- findbars(lme4:::RHSForm(formula))
+names(bars) <- lme4:::barnames(bars)
+SU = lapply(bars,function(b){
+  getSU(b[[3]])})
+formula_fix <- lme4:::getFixedFormula(formula)
+SU = unique(sapply(SU, deparse))
+
+
+btable <- t(sapply(SU,function(sui){
+  getBetweenVar(formula = formula_fix,data = data,SU = sui)
+}))
+
+formula_full = paste("~",paste(colnames(btable),collapse="+"),sep="")
+
+formula_full = paste(c(formula_full ,paste("Error(",sapply(1:nrow(btable),function(i){
+  paste(rownames(btable)[i],"/(",paste(colnames(btable)[!btable[i,]],collapse="+"),")")
+}),")")),collapse=" + ")
+formula = formula(paste(deparse(formula[[2]]),formula_full))
+Ztlist = getZtlm(formula,"reduced",data=data)
+
+names(Ztlist)
+sum(sapply(Ztlist,dim)[1,])
+
+
+
+
+colSums(xtabs(~interaction(fS,fC,fI)+interaction(subject,item),data=data)!=0)
+xtabs(~interaction(subject,item)+interaction(fS,fC,fI),data=data)
+
+## inside fun
+
+
+
+
+
+
+
+glmod = gANOVA_lFormula(fmedium,df,REML =T)
+arglist= list(formula = glmod$formula,
+              data = glmod$fr,REML = glmod$REML)
+parse(arglist)
 
 params = expand.grid(method = c("dekker","terBraak"),
 blup = c("lm","blup","cgr"),stringsAsFactors = F)

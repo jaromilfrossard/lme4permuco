@@ -4,12 +4,14 @@
 \alias{getZtlm}
 \title{Extract / create the Z matrix of type LM from a model}
 \usage{
-getZtlm(model, type)
+getZtlm(model, type = "full", ...)
 }
 \arguments{
 \item{model}{a lmerModgANOVA model}
 
 \item{type}{integer indicating the type of matrix "full" for Z0, "reduced" for Z = Z0C' or "contrasts" for C}
+
+\item{...}{othder argument}
 }
 \description{
 Extract / create the Z matrix of type LM from a model
