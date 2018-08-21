@@ -3,7 +3,7 @@
 #' @description permutation test on lmerMod object
 #'
 #' @param model a lmerMod object
-#' @param blup_FUN the type of BLUP to permute. Default is CGR.
+#' @param blupstar a character string indicating the type of random effect to permute. Default is "cgr" and "blup" and "lm"
 #' @param np an integer indicating the number of permutation/bootstrap/suffle.
 #' @param method a character string indicating the permutation/bootstrap/suffle method, default is "terBraak".
 #' @param assigni a integer indicating the effect to test. Default is 1.
@@ -11,13 +11,18 @@
 #' @param ... other arguments
 #' @importFrom stats pf anova
 #' @export
-lmerModperm <- function(model, blup_FUN, np, method, assigni, statistic, ...){UseMethod("lmerModperm")}
+lmerModperm <- function(model, blupstar, np, method, assigni, statistic, ...){UseMethod("lmerModperm")}
 
 #' @export
-lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, method = "terBraak", assigni = 1, statistic = "Satterthwaite",...){
+lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method = "terBraak", assigni = 1, statistic = "Satterthwaite",...){
   argslist <- formals()
   mc <- match.call()
   argslist[names(as.list(mc[-1]))] = as.list(mc[-1])
+
+  switch(blupstar,
+        "cgr" = {blup_FUN = blup_cgr},
+        "lm" = {blup_FUN = blup_lm},
+        "blup" = {blup_FUN = blup_blup})
 
 
 
@@ -52,14 +57,15 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
     PBSmat(n=n,np =np,type = "PS")
   }))
 
-  if(deparse(argslist$blup_FUN)=="blup_lm"){
+
+  if(eval(argslist$blupstar)=="lm"){
     Ztlist <- getZtlm(model,"reduced")
     X <- getME(model,"X")
     beta <- qr.coef(qr(cbind(X,t(do.call("rbind",Ztlist)))),getME(model,"y"))[1:ncol(X)]
     Ztlist <- getZtlm(model,"full")
 
-  }else if( (deparse(argslist$blup_FUN)=="blup_blup")|
-      (deparse(argslist$blup_FUN)=="blup_cgr")){
+  }else if( (eval(argslist$blupstar)=="blup")|
+      (eval(argslist$blupstar)=="cgr")){
     Ztlist <- getME(model,"Ztlist")
     X <- getME(model,"X")
     beta <- getME(model,"beta")
@@ -67,7 +73,12 @@ lmerModperm.lmerModgANOVA <- function(model, blup_FUN = blup_cgr, np = 4000, met
   }
 
   Ztlist <- c(Ztlist,error=Diagonal(length(blup$ehat)))
+  # print(lapply(Ztlist,dim))
+  # print(lapply(reff,dim))
 
+  # print(length(Ztlist))
+  # print(length(reff))
+  # print(length(PBSlist$ranef))
 
   estar <- mapply(function(pbs,rfi,zti)as.matrix(t(zti)%*%PBS_perm(as.numeric(rfi),pbs)),pbs=PBSlist$ranef,rfi=reff,z = Ztlist,SIMPLIFY = F)
   estar <- Reduce("+",estar)

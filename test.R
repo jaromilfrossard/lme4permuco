@@ -98,22 +98,24 @@ modelg = gANOVA(fmedium,df,REML =T)
 # newx = getME(modelg,"X")[sample(length(newresp)),]
 
 
-lf= list.files(paste(dir,"R",sep=""))
-
-for(lfi in lf){
-  print(lfi)
-  source(paste(dir,"R/",lfi,sep=""))
-}
+# lf= list.files(paste(dir,"R",sep=""))
+#
+# for(lfi in lf){
+#   print(lfi)
+#   source(paste(dir,"R/",lfi,sep=""))
+# }
 
 
 params = expand.grid(method = c("dekker","terBraak"),
-blup = c("blup_lm","blup_blup","blup_cgr"),stringsAsFactors = F)
+blup = c("lm","blup","cgr"),stringsAsFactors = F)
 
-i= 1
-bfun<- switch(params$blup[i],
-       "blup_lm" = {blup_lm},"blup_blup" = {blup_blup},"blup_cgr" = {blup_cgr})
-modi = lmerModperm(modelg,np=10,blup_FUN = bfun,method = params$method[i])
+modlist = list()
 
+i= 2
+np = 200
+
+for(i in 1: nrow(params)){
+  modlist[[i]] = lmerModperm(modelg,np=np,blupstar = params$blup[i],method = params$method[i])}
 
 
 perm_tb_lm = lmerModperm(modelg,np=10,blup_FUN = blup_lm)
