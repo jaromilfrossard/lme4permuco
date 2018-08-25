@@ -1,6 +1,11 @@
 quasiF_terBraak <- function(args){
-  data = args$model@frame
-  formula <- formula(args$model)
+  if(class(args$model)=="lmerModgANOVA"){
+    data = args$model@frame
+    formula <- formula(args$model)
+  }else if(class(args$model)=="list"){
+    data = args$model$fr
+    formula <- args$model$formula
+  }
   bars <- findbars(lme4:::RHSForm(formula))
   names(bars) <- lme4:::barnames(bars)
   SU = lapply(bars,function(b){
@@ -41,7 +46,7 @@ quasiF_terBraak <- function(args){
       formula(~ 1,env=NULL,showEnv=F) }})
 
 
-  link = permucoQuasiF:::link(fformula,formula_within[[1]],formula_within[[2]])
+  link = permucoQuasiF:::link(formula_fix,formula_within[[1]],formula_within[[2]])
   #link ok
 
   ## creating matrix
@@ -60,20 +65,32 @@ quasiF_terBraak <- function(args){
     KhatriRao(zi,t(args$X[,wi,drop=F]))}
   },zi = Ztlist_su, wi = select_w,SIMPLIFY = F)
 
+
+  #terbraak Y
+
+  XD = args$X
+  beta = args$beta
+
+  fitted_star = as.numeric(XD[,attr(XD,"assign")!=args$assigni,drop=F]%*%beta[attr(XD,"assign")!=args$assigni])
+
+
+  ## fitted value
+  ystar=args$estar+fitted_star
+  ystar[,1] = ystar[,1] + as.numeric(XD[,attr(XD,"assign")==args$assigni,drop=F]%*%beta[attr(XD,"assign")==args$assigni])
   ####computing QR
 
 
-  qr_d = qr(args$X[, !select_x, drop = F])
-  rdx = mm[, select_x, drop = F]
-  qr_rdx = qr(rdx)
+  #qr_d = qr(args$X[, !select_x, drop = F])
+  rdx <- Matrix(XD[, select_x, drop = F],sparse=T)
+  qr_rdx <- Matrix::qr(rdx)
 
 
-  qr_z = lapply(zs,function(zi){
+  qr_z <- lapply(zs,function(zi){
     qr(t(zi))
   })
 
 
-  qr_all = c(num1 = qr_rdx,
+  qr_all <- c(num1 = qr_rdx,
              num2 = qr_z[[3]],
              den1 = qr_z[[1]],
              den2 = qr_z[[2]])
@@ -84,34 +101,30 @@ quasiF_terBraak <- function(args){
                den2 = nrow(zs[[2]]))
 
 
-  y = getME(model,"y")
 
-  SS_all = lapply(qr_all,function(qri){
-    sum(qr.fitted(qri, y)^2)
+
+  SS = lapply(qr_all,function(qri){
+    Matrix::colSums(qr.fitted(qri, ystar)^2)
   })
 
-  MS_all = mapply(function(ssi,ri){
+  MS = mapply(function(ssi,ri){
     ssi/ri
-  },ssi = SS_all,ri = rank_all,SIMPLIFY = F)
+  },ssi = SS,ri = rank_all,SIMPLIFY = F)
 
 
 
-  dfn = (MS_all$num1+MS_all$num2)^2/(MS_all$num1^2/rank_all$num1+MS_all$num2^2/rank_all$num2)
-  dfd = (MS_all$den1+MS_all$den2)^2/(MS_all$den1^2/rank_all$den1+MS_all$den2^2/rank_all$den2)
+  dfn = (MS$num1+MS$num2)^2/(MS$num1^2/rank_all$num1+MS$num2^2/rank_all$num2)
+  dfd = (MS$den1+MS$den2)^2/(MS$den1^2/rank_all$den1+MS$den2^2/rank_all$den2)
 
-  quasif = (MS_all$num1+MS_all$num2)/(MS_all$den1+MS_all$den2)
+  quasif = (MS$num1+MS$num2)/(MS$den1+MS$den2)
 
-  # out = c(SSn1 = SSn1, SSn2 = SSn2, SSd1 = SSd1, SSd2 = SSd2,
-  #         dfn1 = qr_rdx$rank,dfn2 = qr_z12$rank,dfd1 = qr_z1$rank, dfd2 = qr_z2$rank,dfn = dfn ,dfd = dfd,
-  #         `quasi F` = qf, `parametric P(>F)` = 1 -
-  #           pf(q = qf, df1 = dfn, df2 = dfd))
-
-
-
+  out = cbind(quasif = quasif, SSn1 = SS$num1, SSn2 = SS$num2, SSd1 = SS$den1, SSd2 = SS$den2,
+          dfn1 = rank_all$num1,dfn2 = rank_all$num2,dfd1 = rank_all$den1, dfd2 = rank_all$den2,dfn = dfn ,dfd = dfd,
+           `parametric P(>F)` = pf(q = quasif , df1 = dfn, df2 = dfd,lower.tail = T))
+  out
 
 
 
 
 }
-
 

@@ -24,6 +24,7 @@ lmerModperm_dekker = function(args){
   model0 = list()
   length(model0)= ncol(ystar)
   mi = args$model
+  start = getME(mi,"theta")
 
   prog = 0L
   cat( paste (prog, "%\n"))
@@ -38,7 +39,10 @@ lmerModperm_dekker = function(args){
     prxi = PBS_perm(rX,getpbs(args$PBSmat,i))[[1]]
     xdi = cbind(prxi,D)[,order_xd,drop=F]
 
-    model0[[i]] = refitxy(mi,newresp = ystar[,i],newx = xdi)
+
+
+    model0[[i]] = refitxy(mi,newresp = ystar[,i],newx = xdi,start = start)
+    start = (start*(i) + getME(model0[[i]],"theta")*1)/(i+1)
     #model0[[i]] = eval(cl)
   }
   model0[[1]] = args$model

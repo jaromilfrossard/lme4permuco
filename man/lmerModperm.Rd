@@ -17,7 +17,7 @@ lmerModperm(model, blupstar, np, method, assigni, statistic, ...)
 
 \item{assigni}{a integer indicating the effect to test. Default is 1.}
 
-\item{statistic}{a character string indicating the test statistic. default is "satterwhaite".}
+\item{statistic}{a character string indicating the test statistic. default is "Satterthwaite".}
 
 \item{...}{other arguments}
 }

@@ -20,6 +20,8 @@ getZtlm.lmerModgANOVA = function(model, type,...){
 
 getZtlm.formula <- function(model, type,...){
   dotargs = list(...)
+  #dotargs = list(data=model$fr)
+  #data=
   if(is.null(dotargs$data)){
     stop("specify data object")
   }
@@ -28,7 +30,7 @@ getZtlm.formula <- function(model, type,...){
 
 
 
-  terms <- terms(formula, special = "Error", data = data)
+  terms <- terms(formula, special = "Error", data = dotargs$data)
   ind_error <- attr(terms, "specials")$Error
 
   fformula = lme4:::getFixedFormula(formula)
@@ -67,7 +69,7 @@ getZtlm.formula <- function(model, type,...){
                      sapply(error_term,function(et)deparse(et[[2]])),collapse="+",sep="+")
 
   # create model frame with contrasts
-  mf_design <- permuco:::changeContrast(data, contr = "contr.sum")
+  mf_design <- permuco:::changeContrast(dotargs$data, contr = "contr.sum")
 
   mf_id <- lapply(formula_id,function(fid){
     model.frame(formula = fid, data = as.data.frame(lapply(mf_design,
@@ -139,7 +141,7 @@ getZtlm.formula <- function(model, type,...){
     cdim = attr(mm0,"contrast"),SIMPLIFY = F)
 
   for(i in 1:ncol(attr(terms(fformula_design),"factors"))){
-    contri = contr_fact[attr(terms(fformula_design),"factors")[,i]]
+    contri = contr_fact[which(attr(terms(fformula_design),"factors")[,i]==1)]
     contri = lapply(contri,function(ci)Matrix(ci,dimnames = dimnames(ci),sparse = T))
     contr_mm[[i]] = Reducekronecker(contri,make.dimnames = T)
   }

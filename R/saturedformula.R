@@ -1,0 +1,3 @@
+saturedformula <- function(formula,data){
+
+}

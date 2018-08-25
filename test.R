@@ -4,6 +4,7 @@ library(lmerTest)
 library(MASS)
 library(combinat)
 library(gANOVA)
+devtools::install_github("jaromilfrossard/permucoQuasiF")
 #devtools::install_github("jaromilfrossard/gANOVA")
 Sys.setenv(LANG = "en")
 
@@ -31,7 +32,7 @@ for(lfi in lf){
 
 ni= 18 #18
 ns = 18#16
-na =list(S = 3,I =3, C =3, SI = 1, O = 1, R = 1)
+na =list(S = 3,I =3, C =2, SI = 1, O = 1, R = 1)
 
 
 fseed = 42
@@ -81,6 +82,7 @@ ffull = y~fS*fC*fI + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
   (1|subject:fC:fI) +
   (1|item) + (1|item:fC)+ (1|item:fS)+ (1|item:fC:fS)+
   (1| subject_item)
+fqf=y ~ fS * fC * fI + Error(subject/(fI*fC)) + Error(item/(fS*fC))
 
 fsmall = y~fS*fC*fI + (1|subject)+ (1|subject:fC)+ (1|item)
 fmedium= y~fS*fC*fI  + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
@@ -90,12 +92,11 @@ flarge= y~fS*fC*fI  + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
 fmlmer= y~fS*fC*fI  + ((fS.L+ fS.Q)||subject)
 
 #devtools::install_github("jaromilfrossard/lme4permuco")
-library(lme4permuco)
-modelg = gANOVA(fmedium,df,REML =T)
-#modelg = gANOVA(flarge,df,REML =T)
-# object = modelg
-# newresp= rev(getME(modelg,"y"))
-# newx = getME(modelg,"X")[sample(length(newresp)),]
+#library(lme4permuco)
+df2 = droplevels(df[df$fC!="c_c",])
+df3 = df[-c(1,50,100,150,200,220),]
+m1=gANOVA(fmedium,df3,REML=T)
+m2=lmer(fmedium,df3,REML=T)
 
 
 lf= list.files(paste(dir,"R",sep=""))
@@ -105,95 +106,64 @@ for(lfi in lf){
   source(paste(dir,"R/",lfi,sep=""))
 }
 
-lmerModperm(modelg,np=5,blupstar = "lm",method = "terBraak",statistic = "quasiF")
+model = gANOVA_lFormula(fmedium,df,REML =T)
+modelg = gANOVA(fmedium,df,REML =T)
 
-data = ag$model@frame
-formula <- formula(ag$model)
-bars <- findbars(lme4:::RHSForm(formula))
-names(bars) <- lme4:::barnames(bars)
-SU = lapply(bars,function(b){
-  getSU(b[[3]])})
-formula_fix <- lme4:::getFixedFormula(formula)
-SU = unique(sapply(SU, deparse))
+#qf = lmerModperm(modelg,np=3,method = "terBraak")
 
+qf = lmerModperm(model,np=4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "lm")
 
-btable <- t(sapply(SU,function(sui){
-  getBetweenVar(formula = formula_fix,data = data,SU = sui)
-}))
+sapply(Ztlist,dim)
 
-formula_full = paste("~",paste(colnames(btable),collapse="+"),sep="")
+qf$model
 
-formula_full = paste(c(formula_full ,paste("Error(",sapply(1:nrow(btable),function(i){
-  paste(rownames(btable)[i],"/(",paste(colnames(btable)[!btable[i,]],collapse="+"),")")
-}),")")),collapse=" + ")
-formula_full = formula(paste(deparse(formula[[2]]),formula_full))
+(proc.time()-t0)/100
+
+qf = lmerModperm(modelg,np=20)
+
+thetas = t(sapply(qf$model0,function(mod){getME(mod,"theta")}))
+cbind(apply(t(t(thetas)-thetas[1,]),1,function(x)sum(x^2)),
+apply(t(t(thetas)-colMeans(thetas)),1,function(x)sum(x^2)))
 
 
 
-terms <- terms(formula_full, special = "Error", data = data)
-terms <- delete.response(terms)
-ind_error <- attr(terms, "specials")$Error
+qf = lmerModperm(modelg,np=20,method = "dekker")
 
-error_term <- lapply(ind_error,function(ie)attr(terms, "variables")[[1 + ie]])
-error_names <- sapply(error_term,function(et){
-  len_et <- length(et[[2]])
-  if(len_et == 3){deparse(et[[2]][[2]])}
-  else if(len_et == 3){deparse(et[[2]])}
-})
-names(error_term) <- error_names
-# extract within part
-formula_within <- lapply(error_term, function(et){
-  len_et <- length(et[[2]])
-  if(len_et==3){formula(paste("~", deparse(et[[2]][[3]]), collapse = ""),env=NULL,showEnv=F)}
-  else if(len_et==1){
-    formula(~ 1,env=NULL,showEnv=F) }})
+colMeans(t(sapply(qf$model0,function(mi){getME(mi,"theta")})))
 
-link = permucoQuasiF:::link(fformula,formula_within[[1]],formula_within[[2]])
+apply(t(sapply(qf$model0,function(mi){getME(mi,"theta")})),2,cumsum)/1:20
 
 
+lfg = gANOVA_lFormula(fmedium,df,REML =T)
 
-names(Ztlist)
-sum(sapply(Ztlist,dim)[1,])
+A = lmerModperm(lfg,np=20)
 
 
 
 
-colSums(xtabs(~interaction(fS,fC,fI)+interaction(subject,item),data=data)!=0)
-xtabs(~interaction(subject,item)+interaction(fS,fC,fI),data=data)
-
-## inside fun
+qflp = lmerModperm(modelg,np=20,blupstar = "lm",method = "terBraak",statistic = "quasiF_logp")
 
 
+paramSat = expand.grid(method = c("dekker","terBraak"),
+blup = c("lm","blup","cgr"), statistic= "Satterthwaite",stringsAsFactors = F)
+paramqf = expand.grid(method = c("terBraak"),
+                      blup = c("lm","blup","cgr"), statistic= c("quasiF","quasiF_logp"),stringsAsFactors = F)
 
-
-
-
-
-glmod = gANOVA_lFormula(fmedium,df,REML =T)
-arglist= list(formula = glmod$formula,
-              data = glmod$fr,REML = glmod$REML)
-parse(arglist)
-
-params = expand.grid(method = c("dekker","terBraak"),
-blup = c("lm","blup","cgr"),stringsAsFactors = F)
-
+params = rbind(paramSat,paramqf)
 modlist = list()
+
+
+lmerModperm(modelg,np=3,blupstar = params$blup[1],method = params$method[1],statistic =params$statistic[1])
 
 i= 2
 np = 200
 
 for(i in 1: nrow(params)){
-  modlist[[i]] = lmerModperm(modelg,np=np,blupstar = params$blup[i],method = params$method[i])}
+  print(params[i,])
+  modlist[[i]] = lmerModperm(modelg,np=np,blupstar = params$blup[i],method = params$method[i],statistic =params$statistic[i] )}
 
 
-perm_tb_lm = lmerModperm(modelg,np=10,blup_FUN = blup_lm)
-perm_tb_blup = lmerModperm(modelg,np=200,blup_FUN = blup_blup)
-perm_tb_cgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr)
-
-perm_tb_lm = lmerModperm(modelg,np=200,blup_FUN = blup_lm)
-perm_tb_blup = lmerModperm(modelg,np=200,blup_FUN = blup_blup)
-perm_tb_cgr = lmerModperm(modelg,np=200,blup_FUN = blup_cgr)
-
+save(modlist,file="modlist.RData")
 
 getSD = function(model){
   vc = VarCorr(model)
@@ -203,23 +173,25 @@ getSD = function(model){
 }
 
 ##### plot thetas
-thetas_lm = t(sapply(permlm$model0,function(mod){getSD(mod)}))
-thetas_cgr = t(sapply(permcgr$model0,function(mod){getSD(mod)}))
-thetas_blup = t(sapply(permblup$model0,function(mod){getSD(mod)}))
+sds = lapply(modlist[1:6],function(modi)t(sapply(modi$model0,function(mod){getSD(mod)})))
 
 
-sapply(permlm$model0,function(mod)mod@optinfo$conv$opt==0)
-sapply(permcgr$model0,function(mod)mod@optinfo$conv$opt==0)
-sapply(permblup$model0,function(mod)mod@optinfo$conv$opt==0)
+nsd = ncol(sds[[1]])
+par(mfcol=c(length(sds),ntheta),oma=c(2,2,0,0),mar=c(2,2,1,.5))
+
+for(sdi in 1:nsd){
+  xlim = range(sapply(sds,function(sdmat){range(sdmat[,sdi])}))
+  for(modi in 1:length(sds)){
+    xi = sds[[modi]][,sdi]
+    plot(density(xi),main="",xlab = "",ylab="",xlim=xlim)
+    abline(v= xi[1])
+  }
+}
 
 
-ntheta = ncol(thetas_lm)
-par(mfcol=c(3,ntheta),oma=c(0,0,0,0),mar=c(2,2,1,.5))
 
-for(i in 1:ntheta){
   xlim= range(c(thetas_lm[,i],thetas_cgr[,i],thetas_blup[,i]))
-plot(density(thetas_lm[,i]),main="",xlab = "",ylab="",xlim=xlim)
-abline(v= thetas_lm[1,i])
+
 plot(density(thetas_cgr[,i]),main="",xlab = "",ylab="",xlim=xlim)
 abline(v= thetas_cgr[1,i])
 plot(density(thetas_blup[,i]),main="",xlab = "",ylab="",xlim=xlim)
