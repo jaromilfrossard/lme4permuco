@@ -40,7 +40,7 @@ fseed = 42
 source(paste("data_uni_lmm.R",sep=""))
 
 
-
+head(df)
 
 f_s = subject~(fI*fC)
 f_i = item~(fS*fC)
@@ -91,6 +91,15 @@ flarge= y~fS*fC*fI  + (1|subject)+ (1|subject:fC)+ (1|subject:fI) +
   (1|subject:fC:fI)+ (1|item)+ (1|item:fC)+ (1|item:fS)+ (1|item:fC:fS)
 fmlmer= y~fS*fC*fI  + ((fS.L+ fS.Q)||subject)
 
+
+f_g_si = formula(paste("y~fS*fC*fI",
+                       "+(1|item) + (1|item:fS)+ (1|item:fC)+ (1|item:fS:fC)",
+                       "+(1|subject) + (1|subject:fI)+ (1|subject:fC) + (1|subject:fI:fC)",
+                       "+(1|subject_item)",sep=""))
+
+
+
+
 #devtools::install_github("jaromilfrossard/lme4permuco")
 #library(lme4permuco)
 df2 = droplevels(df[df$fC!="c_c",])
@@ -106,12 +115,41 @@ for(lfi in lf){
   source(paste(dir,"R/",lfi,sep=""))
 }
 
-model = gANOVA_lFormula(fmedium,df,REML =T)
-modelg = gANOVA(fmedium,df,REML =T)
 
-#qf = lmerModperm(modelg,np=3,method = "terBraak")
 
-qf = lmerModperm(model,np=4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "lm")
+
+model = gANOVA_lFormula(f_g_si,df,REML =T)
+modelg = gANOVA(f_g_si,df,REML =T)
+
+
+
+
+qf_tb_lm = lmerModperm(modelg,np = 4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "lm")
+qf_tb_cgr = lmerModperm(modelg,np = 4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "cgr")
+qf_tb_blup = lmerModperm(modelg,np = 4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "blup")
+
+f = lme4formula2aov(f_g_si)
+f[[3]] = f[[3]][[2]]
+
+head(qf_tb_lm$model0)
+
+permucoQuasiF::aovperm(f,df)
+
+
+qf_tb_lm$statistic_distr[1]
+qf_tb_cgr$statistic_distr[1]
+qf_tb_blup$statistic_distr[1]
+
+head(qf_tb_lm$model0)
+head(qf_tb_cgr$model0)
+
+terms(fformula)
+formula_within
+
+
+
+fformula = formula(paste(deparse(f0[[2]]),"~",deparse(f0[[3]][[2]][[2]][[2]]),sep=""))
+
 
 sapply(Ztlist,dim)
 

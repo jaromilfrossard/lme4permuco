@@ -29,24 +29,21 @@ getZtlm.formula <- function(model, type,...){
   formula = model
 
 
-
   terms <- terms(formula, special = "Error", data = dotargs$data)
   ind_error <- attr(terms, "specials")$Error
 
-  fformula = lme4:::getFixedFormula(formula)
-
-  ## delete error terms
-  if(length(ind_error)==2){
-    fformula = formula(paste(deparse(formula[[2]]),"~",deparse(formula[[3]][[2]][[2]]),sep=""))
-
-  }else if(length(ind_error)==1){
-  fformula = formula(paste(deparse(formula[[2]]),"~",deparse(formula[[3]][[2]]),sep=""))}
 
 
-  fformula_design = delete.response(terms(update.formula(fformula, ~.)))
+  fformula <- aovformula2fixed(formula = formula,n_SU = length(ind_error))
+
+
+  fformula_design <- delete.response(terms(update.formula(fformula, ~.)))
+
 
 
   error_term <- lapply(ind_error,function(ie)attr(terms, "variables")[[1 + ie]])
+  if(length(error_term)>2){error_term = error_term[1:2]}
+
   error_names <- sapply(error_term,function(et){
     len_et <- length(et[[2]])
     if(len_et == 3){deparse(et[[2]][[2]])}
@@ -130,22 +127,22 @@ getZtlm.formula <- function(model, type,...){
   ####fixed contrast
 
   if(type=="contrasts"){
-  contr_mm = list()
-  contr_fact = mapply(function(ctype,cdim){
-    dn = dimnames(cdim)
-    dn[[2]] = dn[[2]][1:(length(dn[[2]])-1)]
-    ci = eval(parse(text = ctype))(ncol(cdim))
-    dimnames(ci) = dn
-    ci},
-    ctype = attr(mm,"contrast"),
-    cdim = attr(mm0,"contrast"),SIMPLIFY = F)
+    contr_mm = list()
+    contr_fact = mapply(function(ctype,cdim){
+      dn = dimnames(cdim)
+      dn[[2]] = dn[[2]][1:(length(dn[[2]])-1)]
+      ci = eval(parse(text = ctype))(ncol(cdim))
+      dimnames(ci) = dn
+      ci},
+      ctype = attr(mm,"contrast"),
+      cdim = attr(mm0,"contrast"),SIMPLIFY = F)
 
-  for(i in 1:ncol(attr(terms(fformula_design),"factors"))){
-    contri = contr_fact[which(attr(terms(fformula_design),"factors")[,i]==1)]
-    contri = lapply(contri,function(ci)Matrix(ci,dimnames = dimnames(ci),sparse = T))
-    contr_mm[[i]] = Reducekronecker(contri,make.dimnames = T)
-  }
-  names(contr_mm) = colnames(attr(terms(fformula_design),"factors"))}
+    for(i in 1:ncol(attr(terms(fformula_design),"factors"))){
+      contri = contr_fact[which(attr(terms(fformula_design),"factors")[,i]==1)]
+      contri = lapply(contri,function(ci)Matrix(ci,dimnames = dimnames(ci),sparse = T))
+      contr_mm[[i]] = Reducekronecker(contri,make.dimnames = T)
+    }
+    names(contr_mm) = colnames(attr(terms(fformula_design),"factors"))}
 
 
 
@@ -179,6 +176,3 @@ getZtlm.formula <- function(model, type,...){
            Ztlist = unlist(Ztlist,recursive = F)})
   return(Ztlist)
 }
-
-
-

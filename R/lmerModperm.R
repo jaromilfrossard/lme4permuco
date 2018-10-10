@@ -112,6 +112,8 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   out$statistic_distr <- statp
   out$mc <- mc
   out$argslist  <- argslist
+  out$PBSlist <- PBSlist
+  out$estar <- estar
   out
 
 }
@@ -193,6 +195,8 @@ lmerModperm.list <- function(model, blupstar = "cgr", np = 4000, method = "terBr
   out$statistic_distr <- statp
   out$mc <- mc
   out$argslist  <- argslist
+  out$PBSlist <- PBSlist
+  out$estar <- estar
   out
 
 

@@ -52,6 +52,7 @@ quasiF_terBraak <- function(args){
   ## creating matrix
   formula_su = formula(paste(c(deparse(formula_fix),paste("Error(",SU,"/1)",sep="")),collapse = "+",sep="+"))
 
+
   Ztlist_su =getZtlm(formula_su,"reduced",data=data)
 
   assign = attr(args$X, "assign")
@@ -76,7 +77,9 @@ quasiF_terBraak <- function(args){
 
   ## fitted value
   ystar=args$estar+fitted_star
-  ystar[,1] = ystar[,1] + as.numeric(XD[,attr(XD,"assign")==args$assigni,drop=F]%*%beta[attr(XD,"assign")==args$assigni])
+  #ystar[,1] = ystar[,1] + as.numeric(XD[,attr(XD,"assign")==args$assigni,drop=F]%*%beta[attr(XD,"assign")==args$assigni])
+  ystar[,1] = getME(args$model,"y")
+
   ####computing QR
 
 
