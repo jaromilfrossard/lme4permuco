@@ -20,18 +20,15 @@ lmerModperm_terBraak = function(args){
   f = eval(cl$formula)
   model0 = list()
   length(model0)= ncol(ystar)
-  start = getME(args$model,"theta")
 
-  prog = 0L
-  cat( paste (prog, "%\n"))
+  ## progress bar
+  pb = txtProgressBar(min=1,max = ncol(ystar),initial = 0,style=3)
+
 
   for(i in 1:ncol(ystar)){
-    if(prog < as.integer(round(i/ncol(ystar)*100))){
-      prog = as.integer(round(i/ncol(ystar)*100))
-      cat( paste (prog, "%\n"))
-    }
-  model0[[i]] = refit.lmerModgANOVA(args$model,newresp = ystar[,i], start = start)
-  start = (start*(i) + getME(model0[[i]],"theta")*1)/(i+1)
+    setTxtProgressBar(pb,i)
+    model0[[i]] = refit.lmerModgANOVA(args$model,newresp = ystar[,i], start = start)
+    start = (start*(i) + getME(model0[[i]],"theta")*1)/(i+1)
 
   }
   model0[[1]] = args$model

@@ -26,14 +26,12 @@ lmerModperm_dekker = function(args){
   mi = args$model
   start = getME(mi,"theta")
 
-  prog = 0L
-  cat( paste (prog, "%\n"))
+  ## progress bar
+  pb = txtProgressBar(min=1,max = ncol(ystar),initial = 0,style=3)
 
   for(i in 1:ncol(ystar)){
-    if(prog < as.integer(round(i/ncol(ystar)*100))){
-      prog = as.integer(round(i/ncol(ystar)*100))
-      cat( paste (prog, "%\n"))
-    }
+    setTxtProgressBar(pb,i)
+
 
 
     prxi = PBS_perm(rX,getpbs(args$PBSmat,i))[[1]]
