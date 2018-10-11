@@ -119,9 +119,7 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
 }
 
 
-
-
-#' Compute quasi F from a from gANOVA_lFormula()
+### #' Compute quasi F from a from gANOVA_lFormula()
 #'@export
 lmerModperm.list <- function(model, blupstar = "cgr", np = 4000, method = "terBraak", assigni = 1, statistic = "quasiF_logp",...){
 
@@ -149,7 +147,7 @@ lmerModperm.list <- function(model, blupstar = "cgr", np = 4000, method = "terBr
 
   switch(statistic,
          "quasiF" = {FUN_stat =function(model,assigni){model[,1]}},
-         "quasiF_logp" = {FUN_stat =function(model,assigni){abs(pf(q = model[,1] , df1 = model[,10], df2 = model[,11],lower.tail = T, log.p = T))}}
+         "quasiF_logp" = {FUN_stat =function(model,assigni){abs(pf(q = model[,1] , df1 = model[,10], df2 = model[,11],lower.tail = F, log.p = T))}}
   )
 
   if(method=="dekker"){stop("the dekker method do not work with quasi F statistics.")}

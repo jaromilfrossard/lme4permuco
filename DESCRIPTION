@@ -1,15 +1,14 @@
 Package: lme4permuco
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Permutation and randomization tests for mixed models
 Version: 0.1.0
 Authors@R: c(
   person("Jaromil","Frossard", email = "jaromil.frossard@unige.ch",role = c("aut", "cre")),
   person("Olivier","Renaud",email="olivier.renaud@unige.ch",role=c("aut")))
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Tools to compute permutations and randomization test for mixed models in lme4 or gANOVA.
 License: GPL (>= 2)
 Imports: gANOVA,Matrix,lme4,methods
 LazyData: TRUE
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Suggests: R.rsp
 VignetteBuilder: R.rsp

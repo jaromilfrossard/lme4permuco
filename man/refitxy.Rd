@@ -4,7 +4,8 @@
 \alias{refitxy}
 \title{Refit both X and Y of a lme4 model}
 \usage{
-refitxy(object, newresp = NULL, newx = NULL, rename.response = FALSE, ...)
+refitxy(object, newresp = NULL, newx = NULL, rename.response = FALSE,
+  ...)
 }
 \arguments{
 \item{object}{a gANOVA model}
