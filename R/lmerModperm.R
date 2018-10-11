@@ -32,7 +32,7 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
            ano = anova(model,type=3,ddf="Satterthwaite")
            abs(pf(q=ano[assigni,5], df1 = ano[assigni,3], df2 = ano[assigni,4], lower.tail = F, log.p = T))}},
          "quasiF" = {FUN_stat =function(model,assigni){model[,1]}},
-         "quasiF_logp" = {FUN_stat =function(model,assigni){abs(pf(q = model[,1] , df1 = model[,10], df2 = model[,11],lower.tail = T, log.p = T))}}
+         "quasiF_logp" = {FUN_stat =function(model,assigni){abs(pf(q = model[,1] , df1 = model[,10], df2 = model[,11],lower.tail = F, log.p = T))}}
          )
 
 
