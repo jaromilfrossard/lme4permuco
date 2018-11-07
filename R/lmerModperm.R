@@ -22,7 +22,9 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   switch(blupstar,
         "cgr" = {blup_FUN = blup_cgr},
         "lm" = {blup_FUN = blup_lm},
-        "blup" = {blup_FUN = blup_blup})
+        "blup" = {blup_FUN = blup_blup},
+        "contrblup" = {blup_FUN = blup_contrblup},
+        "contrcgr" = {blup_FUN = blup_contrcgr})
 
 
   switch(statistic,
@@ -39,7 +41,7 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   if(statistic%in% c("quasiF","quasiF_logp") ){
     switch(method,
            "terBraak" = {FUN_p = function(x)quasiF_terBraak(x)},
-           "dekker" = {stop("the dekker method do not work with quasi F statistics.")})
+           "dekker" = {stop("the dekker method does not work with quasi F statistics.")})
   }else{
     switch(method,
            "terBraak" = {FUN_p = function(x)lmerModperm_terBraak(x)},
@@ -74,6 +76,25 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   }else if( (eval(argslist$blupstar)=="blup")|
       (eval(argslist$blupstar)=="cgr")){
     Ztlist <- getME(model,"Ztlist")
+    X <- getME(model,"X")
+    beta <- getME(model,"beta")
+
+  }else if( (eval(argslist$blupstar)=="contrblup")|
+             (eval(argslist$blupstar)=="contrcgr")){
+
+    SUn <- lapply(names(model@reTrms$contrlist),function(namei) {
+      namei = unlist(strsplit(unlist(strsplit(namei, "[|]"))[2],"[:]"))[1]
+      length(levels(droplevels(model@frame[,gsub(" ", "", namei, fixed = TRUE)])))
+
+    })
+    Ztlist <- getME(model,"Ztlist")
+    contrlist <- getContrlist(model)
+
+
+    Ztlist <- mapply(function(ni,contri,zti)(Diagonal(ni)%x%contri)%*%zti,
+                     contri=contrlist,ni=SUn, zti = Ztlist,SIMPLIFY = F)
+
+
     X <- getME(model,"X")
     beta <- getME(model,"beta")
 
@@ -128,7 +149,7 @@ lmerModperm.list <- function(model, blupstar = "cgr", np = 4000, method = "terBr
     stop("the model is not the output of gANOVA_lFormula()")
   }
 
-  if((statistic%in%c("Satterthwaite","Satterthwaite_logp","Satterthwaite","Satterthwaite_p"))||(blupstar%in%c("cgr","blup"))){
+  if((statistic%in%c("Satterthwaite","Satterthwaite_logp","Satterthwaite","Satterthwaite_p"))||(blupstar%in%c("cgr","blup","contrblup","contrcgr"))){
     cl = quote(gANOVA())
     cl$formula = eval(model$formula)
     cl$data = eval(model$fr)

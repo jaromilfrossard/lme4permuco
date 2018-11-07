@@ -118,11 +118,29 @@ for(lfi in lf){
 
 
 
-model = gANOVA_lFormula(f_g_si,df,REML =T)
+#model = gANOVA_lFormula(f_g_si,df,REML =T)
 modelg = gANOVA(f_g_si,df,REML =T)
 
+model = modelg
+SUn <- lapply(names(model@reTrms$contrlist),function(namei) {
+  namei = unlist(strsplit(unlist(strsplit(namei, "[|]"))[2],"[:]"))[1]
+  length(levels(droplevels(model@frame[,gsub(" ", "", namei, fixed = TRUE)])))
+
+})
+Ztlist <- getME(model,"Ztlist")
+contrlist <- getContrlist(model)
 
 
+Ztlist <- mapply(function(ni,contri,zti)(Diagonal(ni)%x%contri)%*%zti,
+                    contri=contrlist,ni=SUn, zti = Ztlist,SIMPLIFY = F)
+
+
+qf_tb_contrblup = lmerModperm(modelg,np = 4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "contrblup")
+qf_tb_contrcgr = lmerModperm(modelg,np = 4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "contrcgr")
+
+getContrlist(modelg)
+
+blup_contrblup(modelg)
 
 qf_tb_lm = lmerModperm(modelg,np = 4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "lm")
 qf_tb_cgr = lmerModperm(modelg,np = 4000,method = "terBraak",statistic = "quasiF_logp",blupstar = "cgr")

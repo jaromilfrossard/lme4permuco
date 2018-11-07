@@ -1,5 +1,5 @@
 #' @importFrom gANOVA refit.lmerModgANOVA
-#'
+#' @importFrom utils setTxtProgressBar txtProgressBar
 lmerModperm_dekker = function(args){
   XD = args$X
 
