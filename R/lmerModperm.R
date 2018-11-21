@@ -19,6 +19,12 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   mc <- match.call()
   argslist[names(as.list(mc[-1]))] = as.list(mc[-1])
 
+  blupstar = match.arg(blupstar,c("cgr","lm","blup","contrblup","contrcgr"))
+  statistic = match.arg(statistic,c("Satterthwaite","Satterthwaite_p","Satterthwaite_logp",
+                                    "quasiF","quasiF_logp"))
+  method = match.arg(method,c("terBraak","dekker"))
+
+
   switch(blupstar,
         "cgr" = {blup_FUN = blup_cgr},
         "lm" = {blup_FUN = blup_lm},
@@ -122,7 +128,12 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   }else{
     statp = sapply(model0,function(mod){
     FUN_stat(mod, assigni)
-  })}
+    })}
+
+  #create table
+  en = attr(terms(model@frame),"term.labels")[assigni]
+  tab=cbind(data.frame(effect = en),FUN_stat(model0[[1]]))
+
 
 
 
@@ -135,6 +146,7 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   out$argslist  <- argslist
   out$PBSlist <- PBSlist
   out$estar <- estar
+  out$tab <- tab
   out
 
 }
@@ -148,6 +160,11 @@ lmerModperm.list <- function(model, blupstar = "cgr", np = 4000, method = "terBr
   if(sum(names(model)== c("fr","X","reTrms","REML","formula","wmsgs" ))!=6){
     stop("the model is not the output of gANOVA_lFormula()")
   }
+
+  blupstar = match.arg(blupstar,c("cgr","lm","blup","contrblup","contrcgr"))
+  statistic = match.arg(statistic,c("Satterthwaite","Satterthwaite_p","Satterthwaite_logp",
+                                    "quasiF","quasiF_logp"))
+  method = match.arg(method,c("terBraak","dekker"))
 
   if((statistic%in%c("Satterthwaite","Satterthwaite_logp","Satterthwaite","Satterthwaite_p"))||(blupstar%in%c("cgr","blup","contrblup","contrcgr"))){
     cl = quote(gANOVA())
