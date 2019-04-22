@@ -122,6 +122,7 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
 #return(args)
 
   model0 <- FUN_p(args)
+  return(model0)
 
   if(statistic%in% c("quasiF","quasiF_logp") ){
     statp = FUN_stat(model0, assigni)
