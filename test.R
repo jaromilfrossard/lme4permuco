@@ -122,6 +122,15 @@ for(lfi in lf){
 modelg = gANOVA(f_g_si,df,REML =T)
 
 model = modelg
+
+satt = lmerModperm(modelg,np = 4,method = "terBraak",statistic = "Satterthwaite",blupstar = "contrblup")
+
+
+contrblup = lmerModperm(modelg,np = 4,method = "terBraak",statistic = "quasiF_logp",blupstar = "contrblup")
+
+contrblup$model0
+
+
 SUn <- lapply(names(model@reTrms$contrlist),function(namei) {
   namei = unlist(strsplit(unlist(strsplit(namei, "[|]"))[2],"[:]"))[1]
   length(levels(droplevels(model@frame[,gsub(" ", "", namei, fixed = TRUE)])))

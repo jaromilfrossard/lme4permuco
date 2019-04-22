@@ -23,6 +23,7 @@ lmerModperm_terBraak = function(args){
 
   ## progress bar
   pb = txtProgressBar(min=1,max = ncol(ystar),initial = 0,style=3)
+  start=cl$start
 
 
   for(i in 1:ncol(ystar)){

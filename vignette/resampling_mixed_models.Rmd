@@ -1,0 +1,49 @@
+---
+title: "Resampling in mixed models"
+author: "Jaromil Frossard"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Resampling in mixed models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Description of resampling methods in mixed models
+
+The general form of the model is written:
+
+
+$$y = X\beta + Zb + \epsilon,$$
+
+where $Z\gamma = \sum_j^J Z_jb_j$ and $b_j\sim (0, \Sigma_{j})$ and $\epsilon\sim (0,I\sigma_\epsilon^2)$. The optimization give us the estimates of the parameters $\theta$ which are the elements of the matrices $\Sigma_j$. We will focusing on case where $\Sigma_j = I\sigma_j$.
+
+Using ML, REML, or assuming all $b$ as fixed effects, the estimation gives us the equation:
+
+$$y = X \hat{\beta} + Z \hat{b} + r.$$
+
+The permutation procedure implemented in this package are of the general form:
+
+$$y^\ast = X \hat{\beta} + \rho_j\sum_j^J Z_j C_jT_jC_j^-\hat{b}_j + T_r r,$$
+
+where $T_j$ and $T_r$ are transformation matrices, like bootstrap, flip or permutation, $C_j$ contrasts matrices and $\rho_j$ is a scaling coefficient.
+
+## Transformation
+
+Assuming $T_j$ is a flipping matrix.
+
+We have the average variance:
+
+$$\frac{1}{n_\mathcal{T}}\sum_{\mathcal{T}}\frac{1}{n_j-1}\hat{b}_j'T_j'R_\textbf{1}T_j\hat{b}_j= \frac{1}{n_j-1}\hat{b}'_j\hat{b}_j$$
+
+
+
+
+
+
+
+
+
+
+

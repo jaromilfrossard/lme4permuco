@@ -9,6 +9,6 @@ Description: Tools to compute permutations and randomization test for mixed mode
 License: GPL (>= 2)
 Imports: gANOVA,Matrix,lme4,methods
 LazyData: TRUE
-RoxygenNote: 6.1.0
-Suggests: R.rsp
-VignetteBuilder: R.rsp
+RoxygenNote: 6.1.1
+Suggests: knitr,rmarkdown
+VignetteBuilder: knitr
