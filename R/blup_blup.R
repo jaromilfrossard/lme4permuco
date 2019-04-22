@@ -1,6 +1,6 @@
 #' Compute the unmodified blup of a lmerMod object
 #'
-#' @description Compute the unmodified blup of a lmerMod object
+#' @description Compute the unmodified blup of a lmerMod object.
 #'
 #' @param model a lmerMod object.
 #' @export
