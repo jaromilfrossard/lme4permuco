@@ -122,18 +122,17 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
 #return(args)
 
   model0 <- FUN_p(args)
-  return(model0)
 
   if(statistic%in% c("quasiF","quasiF_logp") ){
-    statp = FUN_stat(model0, assigni)
+    statp = FUN_stat(model = model0, assign = assigni)
   }else{
     statp = sapply(model0,function(mod){
-    FUN_stat(mod, assigni)
+    FUN_stat(model = mod, assign = assigni)
     })}
 
   #create table
-  en = attr(terms(model@frame),"term.labels")[assigni]
-  tab=cbind(data.frame(effect = en),FUN_stat(model0[[1]]))
+  #en = attr(terms(model@frame),"term.labels")[assigni]
+  #tab = cbind(data.frame(effect = en),quasif = FUN_stat(model0, assign = assigni))
 
 
 
@@ -147,7 +146,7 @@ lmerModperm.lmerModgANOVA <- function(model, blupstar = "cgr", np = 4000, method
   out$argslist  <- argslist
   out$PBSlist <- PBSlist
   out$estar <- estar
-  out$tab <- tab
+  #out$tab <- tab
   out
 
 }
